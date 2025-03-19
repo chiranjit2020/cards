@@ -26,7 +26,7 @@ let pageInfo = document.getElementById('page-info');
 let prevBtn= document.getElementById('prev-btn');
 let nextBtn = document.getElementById('next-btn');
 let currentPage = 1;
-let limit = 10;
+let limit = 12;
 
 prevBtn.disabled = true;
 
