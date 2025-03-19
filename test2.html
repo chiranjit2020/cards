@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DocumentFragment vs Direct DOM Update</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        .container { display: flex; justify-content: space-around; margin-top: 20px; }
+        .box { width: 45%; padding: 10px; border: 2px solid black; }
+        .card { background: lightblue; padding: 10px; margin: 5px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Performance Test: DocumentFragment vs Direct DOM Update</h1>
+
+    <div class="container">
+        <div class="box">
+            <h2>❌ Without DocumentFragment</h2>
+            <p id="timeWithout"></p>
+            <ul id="withoutFragment"></ul>
+        </div>
+        <div class="box">
+            <h2>✅ With DocumentFragment</h2>
+            <p id="timeWith"></p>
+            <ul id="withFragment"></ul>
+        </div>
+    </div>
+
+    <script>
+        const data = Array.from({ length: 500 }, (_, i) => `Card ${i + 1}`);
+
+        function loadWithoutFragment() {
+            const ul = document.getElementById('withoutFragment');
+            ul.innerHTML = "";
+            const startTime = performance.now();
+
+            data.forEach(item => {
+                const li = document.createElement('li');
+                li.className = "card";
+                li.textContent = item;
+                ul.appendChild(li); // ⛔ Direct DOM update (multiple reflows)
+            });
+
+            const endTime = performance.now();
+            document.getElementById('timeWithout').textContent = `Loading time: ${(endTime - startTime).toFixed(2)}ms`;
+        }
+
+        function loadWithFragment() {
+            const ul = document.getElementById('withFragment');
+            ul.innerHTML = "";
+            const startTime = performance.now();
+
+            const fragment = document.createDocumentFragment();
+            data.forEach(item => {
+                const li = document.createElement('li');
+                li.className = "card";
+                li.textContent = item;
+                fragment.appendChild(li); // ✅ Append to fragment (No reflow yet)
+            });
+
+            ul.appendChild(fragment); // ✅ Single DOM update (One reflow)
+            const endTime = performance.now();
+            document.getElementById('timeWith').textContent = `Loading time: ${(endTime - startTime).toFixed(2)}ms`;
+        }
+
+        loadWithoutFragment();
+        loadWithFragment();
+    </script>
+</body>
+</html>

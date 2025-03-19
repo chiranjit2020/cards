@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DocumentFragment vs Direct DOM Update</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .container { display: flex; gap: 20px; }
+        .column { width: 50%; }
+        ul { list-style: none; padding: 0; }
+        .card-item { border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; }
+        img { width: 100%; height: auto; }
+    </style>
+</head>
+<body>
+
+    <h1>Comparing DocumentFragment vs Direct DOM Manipulation</h1>
+    <p>Check the load time difference in the console.</p>
+    
+    <div class="container">
+        <div class="column">
+            <h2>❌ Without DocumentFragment</h2>
+            <p id="timeWithout">Loading time: ...</p>
+            <ul id="withoutFragment"></ul>
+        </div>
+        
+        <div class="column">
+            <h2>✅ With DocumentFragment</h2>
+            <p id="timeWith">Loading time: ...</p>
+            <ul id="withFragment"></ul>
+        </div>
+    </div>
+
+    <script>
+const API = "https://picsum.photos/v2/list?limit=200";
+let imageData = []; // Store data globally
+
+fetch(API)
+    .then(response => response.json())
+    .then(data => {
+        imageData = data; // Store fetched data
+        loadWithoutFragment();
+        loadWithFragment();
+    });
+
+function loadWithoutFragment() {
+    const ul = document.getElementById('withoutFragment');
+    ul.innerHTML = "";
+
+    const startTime = performance.now();
+
+    imageData.forEach(({ author, download_url }) => {
+        const li = document.createElement('li');
+        li.className = "card-item";
+        li.innerHTML = `
+            <figure>
+                <img src="${download_url}" alt="Image">
+            </figure>
+            <h3>Author: ${author}</h3>
+        `;
+        ul.appendChild(li); // Directly modifying the DOM
+    });
+
+    const endTime = performance.now();
+    document.getElementById('timeWithout').textContent = `Loading time: ${(endTime - startTime).toFixed(2)}ms`;
+}
+
+function loadWithFragment() {
+    const ul = document.getElementById('withFragment');
+    ul.innerHTML = "";
+
+    const startTime = performance.now();
+    
+    const fragment = document.createDocumentFragment();
+
+    imageData.forEach(({ author, download_url }) => {
+        const li = document.createElement('li');
+        li.className = "card-item";
+        li.innerHTML = `
+            <figure>
+                <img src="${download_url}" alt="Image">
+            </figure>
+            <h3>Author: ${author}</h3>
+        `;
+        fragment.appendChild(li); // Append to fragment
+    });
+
+    ul.appendChild(fragment); // Append all at once
+
+    const endTime = performance.now();
+    document.getElementById('timeWith').textContent = `Loading time: ${(endTime - startTime).toFixed(2)}ms`;
+}
+
+    </script>
+
+</body>
+</html>
